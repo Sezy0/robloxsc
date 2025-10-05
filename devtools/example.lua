@@ -15,6 +15,7 @@ local Window = UIManager:QuickSetup("Dev Tools v2.0")
 -- Get other modules
 local SelectObject = DevTools:GetModule("select_object")
 local UIInspector = DevTools:GetModule("ui_inspector")
+local ClickDebugger = DevTools:GetModule("click_debugger")
 local Teleport = DevTools:GetModule("teleport")
 local ESP = DevTools:GetModule("esp")
 local Fly = DevTools:GetModule("fly")
@@ -156,6 +157,20 @@ UISection:Toggle("Enable UI Inspector", false, function(state)
 end)
 UISection:Label("Hold Alt + Click on UI elements")
 UISection:Label("to inspect and auto-click")
+
+local DebugSection = ToolsTab:Section("🐛 Click Debugger")
+DebugSection:Toggle("Enable Click Debugger", false, function(state)
+    ClickDebugger:Toggle(state)
+    if state then
+        UIManager:Notify("Click Debugger", "All clicks will be logged", 2)
+    end
+end)
+DebugSection:Label("Track all clicks and log to console")
+DebugSection:Label("Check F9 for detailed logs")
+DebugSection:Button("Clear History", function()
+    ClickDebugger:ClearHistory()
+    UIManager:Notify("Cleared", "Click history cleared", 1.5)
+end)
 
 local SelectSection = ToolsTab:Section("Object Selection")
 SelectSection:Toggle("Enable Selection", false, function(state)

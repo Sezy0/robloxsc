@@ -67,6 +67,7 @@ function DevTools:Init()
     local modulesToLoad = {
         "select_object",
         "ui_inspector",
+        "click_debugger",
         "esp",
         "teleport",
         "fly",
