@@ -11,7 +11,12 @@ print("  Loading NextUI...")
 print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
 -- Load NextUI Library
-local NextUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezy0/robloxsc/main/devtools/libs/nextui.lua"))()
+local NextUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezy0/LIBui/main/nextjs_mobile_compact/init.lua"))()
+
+-- Bypass auth
+NextUI:ValidateKey("bypass", nil)
+
+-- Create window
 local Window = NextUI:Window({
     Title = "Fisch Script v1.0",
     SubTitle = "by Foxzy",
