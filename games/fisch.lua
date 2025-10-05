@@ -115,6 +115,7 @@ end
 local function autoClickLoop()
     -- Auto spam click terus dengan random delay
     while autoFishEnabled do
+        -- Method 1: Tool activation
         local character = Player.Character
         if character then
             local tool = character:FindFirstChildOfClass("Tool")
@@ -138,6 +139,20 @@ local function autoClickLoop()
                 end)
             end
         end
+        
+        -- Method 2: Simulate mouse click (left click)
+        pcall(function()
+            local camera = workspace.CurrentCamera
+            local screenSize = camera.ViewportSize
+            local centerX = screenSize.X / 2
+            local centerY = screenSize.Y / 2
+            
+            -- Mouse button down
+            VirtualInputManager:SendMouseButtonEvent(centerX, centerY, 0, true, game, 0)
+            task.wait(0.05)
+            -- Mouse button up
+            VirtualInputManager:SendMouseButtonEvent(centerX, centerY, 0, false, game, 0)
+        end)
         
         -- Random delay 0.5s - 1s
         local randomDelay = math.random(50, 100) / 100 -- 0.5 to 1.0 seconds
