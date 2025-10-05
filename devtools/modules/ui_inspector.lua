@@ -10,6 +10,7 @@ UIInspector.SelectedElement = nil
 UIInspector.Highlight = nil
 UIInspector.InfoGui = nil
 UIInspector.InfoPanel = nil
+UIInspector.BlockerFrame = nil
 
 -- Services
 local Players = game:GetService("Players")
@@ -18,6 +19,70 @@ local RunService = game:GetService("RunService")
 
 local Player = Players.LocalPlayer
 local Mouse = Player:GetMouse()
+
+-- Create click blocker overlay
+function UIInspector:CreateBlocker()
+    if self.BlockerFrame then
+        self.BlockerFrame:Destroy()
+    end
+    
+    if not self.InfoGui then
+        return
+    end
+    
+    local blocker = Instance.new("Frame")
+    blocker.Name = "ClickBlocker"
+    blocker.Parent = self.InfoGui
+    blocker.Position = UDim2.new(0, 0, 0, 0)
+    blocker.Size = UDim2.new(1, 0, 1, 0)
+    blocker.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    blocker.BackgroundTransparency = 0.5
+    blocker.BorderSizePixel = 0
+    blocker.ZIndex = 500
+    blocker.Active = true
+    
+    -- Add hint text
+    local hint = Instance.new("TextLabel")
+    hint.Parent = blocker
+    hint.AnchorPoint = Vector2.new(0.5, 0.5)
+    hint.Position = UDim2.new(0.5, 0, 0.5, 0)
+    hint.Size = UDim2.new(0, 400, 0, 100)
+    hint.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+    hint.BackgroundTransparency = 0.3
+    hint.BorderSizePixel = 0
+    hint.Font = Enum.Font.GothamBold
+    hint.Text = "🔍 UI INSPECTOR MODE\n\nAlt + Click to inspect UI elements\nClick here to cancel"
+    hint.TextColor3 = Color3.fromRGB(0, 255, 255)
+    hint.TextSize = 14
+    hint.TextWrapped = true
+    hint.ZIndex = 501
+    
+    local hintCorner = Instance.new("UICorner")
+    hintCorner.CornerRadius = UDim.new(0, 10)
+    hintCorner.Parent = hint
+    
+    -- Click blocker to close inspector mode
+    blocker.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or 
+           input.UserInputType == Enum.UserInputType.Touch then
+            -- Check if not holding Alt
+            if not UserInputService:IsKeyDown(Enum.KeyCode.LeftAlt) then
+                self:Toggle(false)
+            end
+        end
+    end)
+    
+    self.BlockerFrame = blocker
+    return blocker
+end
+
+-- Remove blocker
+function UIInspector:RemoveBlocker()
+    if self.BlockerFrame then
+        self.BlockerFrame:Destroy()
+        self.BlockerFrame = nil
+    end
+end
 
 -- Create info GUI container
 function UIInspector:CreateInfoGui()
@@ -30,6 +95,7 @@ function UIInspector:CreateInfoGui()
     screenGui.ResetOnSpawn = false
     screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     screenGui.DisplayOrder = 999
+    screenGui.IgnoreGuiInset = true
     
     local success = pcall(function()
         screenGui.Parent = game:GetService("CoreGui")
@@ -60,7 +126,8 @@ function UIInspector:CreateHighlight(element)
     highlight.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
     highlight.BorderSizePixel = 2
     highlight.BorderColor3 = Color3.fromRGB(255, 255, 0)
-    highlight.ZIndex = 999
+    highlight.ZIndex = 600
+    highlight.Active = false
     
     -- Update position/size in real-time
     local connection
@@ -126,7 +193,8 @@ function UIInspector:CreateInfoPanel(element)
     frame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
     frame.BorderSizePixel = 0
     frame.AutomaticSize = Enum.AutomaticSize.Y
-    frame.ZIndex = 1000
+    frame.ZIndex = 1500
+    frame.Active = true
     
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 8)
@@ -146,7 +214,7 @@ function UIInspector:CreateInfoPanel(element)
     header.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
     header.BorderSizePixel = 0
     header.Active = true
-    header.ZIndex = 1000
+    header.ZIndex = 1500
     
     -- Make draggable
     local dragging = false
@@ -435,11 +503,17 @@ end
 function UIInspector:Toggle(state)
     self.Active = state
     
-    if not state then
+    if state then
+        -- Enable: Create blocker
+        self:CreateBlocker()
+        print("[UIInspector] Enabled - Alt+Click to inspect, Click blocker to cancel")
+    else
+        -- Disable: Remove blocker and clear selection
+        self:RemoveBlocker()
         self:ClearSelection()
+        print("[UIInspector] Disabled")
     end
     
-    print("[UIInspector] " .. (state and "Enabled" or "Disabled"))
     return state
 end
 
@@ -461,6 +535,7 @@ end
 
 -- Unload module
 function UIInspector:Unload()
+    self:RemoveBlocker()
     self:ClearSelection()
     if self.InfoGui then
         self.InfoGui:Destroy()
