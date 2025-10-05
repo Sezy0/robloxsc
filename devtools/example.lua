@@ -14,6 +14,7 @@ local Window = UIManager:QuickSetup("Dev Tools v2.0")
 
 -- Get other modules
 local SelectObject = DevTools:GetModule("select_object")
+local UIInspector = DevTools:GetModule("ui_inspector")
 local Teleport = DevTools:GetModule("teleport")
 local ESP = DevTools:GetModule("esp")
 local Fly = DevTools:GetModule("fly")
@@ -146,6 +147,16 @@ PlayerSection:Toggle("God Mode", false, function(state)
 end)
 
 -- Tools Tab
+local UISection = ToolsTab:Section("🔍 UI Inspector")
+UISection:Toggle("Enable UI Inspector", false, function(state)
+    UIInspector:Toggle(state)
+    if state then
+        UIManager:Notify("UI Inspector", "Alt+Click to inspect", 2)
+    end
+end)
+UISection:Label("Hold Alt + Click on UI elements")
+UISection:Label("to inspect and auto-click")
+
 local SelectSection = ToolsTab:Section("Object Selection")
 SelectSection:Toggle("Enable Selection", false, function(state)
     SelectObject:Toggle(state)
