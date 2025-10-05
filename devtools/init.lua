@@ -68,11 +68,19 @@ function DevTools:Init()
         "select_object",
         "esp",
         "teleport",
+        "fly",
+        "commands",
         "ui_manager",
     }
     
     for _, moduleName in ipairs(modulesToLoad) do
         self:LoadModule(moduleName)
+    end
+    
+    -- Set DevTools reference for commands module
+    local Commands = self.Modules["commands"]
+    if Commands then
+        Commands:SetDevTools(self)
     end
     
     print("\n[DevTools] ✓ Initialization complete!")
