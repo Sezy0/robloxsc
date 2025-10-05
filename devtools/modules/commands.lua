@@ -8,8 +8,9 @@ Commands.Version = "1.0.0"
 Commands.Prefix = "."
 Commands.CommandList = {}
 Commands.DevTools = nil
-Commands.PrefixGui = nil
-Commands.PrefixPanel = nil
+Commands.PositionGui = nil
+Commands.PositionPanel = nil
+Commands.PositionUpdateConnection = nil
 
 -- Services
 local Players = game:GetService("Players")
@@ -19,15 +20,15 @@ local UserInputService = game:GetService("UserInputService")
 
 local Player = Players.LocalPlayer
 
--- Create prefix UI panel
-function Commands:CreatePrefixPanel()
-    if self.PrefixPanel then
-        self.PrefixPanel:Destroy()
+-- Create position display panel
+function Commands:CreatePositionPanel()
+    if self.PositionPanel then
+        self.PositionPanel:Destroy()
     end
     
-    if not self.PrefixGui then
+    if not self.PositionGui then
         local screenGui = Instance.new("ScreenGui")
-        screenGui.Name = "CommandPrefixPanel"
+        screenGui.Name = "PositionDisplayPanel"
         screenGui.ResetOnSpawn = false
         screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
         
@@ -39,16 +40,16 @@ function Commands:CreatePrefixPanel()
             screenGui.Parent = Player:WaitForChild("PlayerGui")
         end
         
-        self.PrefixGui = screenGui
+        self.PositionGui = screenGui
     end
     
     -- Main frame
     local frame = Instance.new("Frame")
-    frame.Name = "PrefixPanel"
-    frame.Parent = self.PrefixGui
-    frame.AnchorPoint = Vector2.new(0.5, 0.5)
-    frame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    frame.Size = UDim2.new(0, 320, 0, 0)
+    frame.Name = "PositionPanel"
+    frame.Parent = self.PositionGui
+    frame.AnchorPoint = Vector2.new(0, 0)
+    frame.Position = UDim2.new(0, 10, 0, 100)
+    frame.Size = UDim2.new(0, 280, 0, 0)
     frame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
     frame.BorderSizePixel = 0
     frame.AutomaticSize = Enum.AutomaticSize.Y
@@ -59,7 +60,7 @@ function Commands:CreatePrefixPanel()
     
     local stroke = Instance.new("UIStroke")
     stroke.Parent = frame
-    stroke.Color = Color3.fromRGB(100, 200, 255)
+    stroke.Color = Color3.fromRGB(255, 200, 0)
     stroke.Thickness = 2
     stroke.Transparency = 0.3
     
@@ -125,8 +126,8 @@ function Commands:CreatePrefixPanel()
     title.Size = UDim2.new(1, -60, 1, 0)
     title.BackgroundTransparency = 1
     title.Font = Enum.Font.GothamBold
-    title.Text = "💬 Command Prefix"
-    title.TextColor3 = Color3.fromRGB(100, 200, 255)
+    title.Text = "📍 Position Display"
+    title.TextColor3 = Color3.fromRGB(255, 200, 0)
     title.TextSize = 13
     title.TextXAlignment = Enum.TextXAlignment.Left
     
@@ -169,150 +170,134 @@ function Commands:CreatePrefixPanel()
     layout.SortOrder = Enum.SortOrder.LayoutOrder
     layout.Padding = UDim.new(0, 10)
     
-    -- Current prefix display
-    local currentLabel = Instance.new("TextLabel")
-    currentLabel.Parent = content
-    currentLabel.Size = UDim2.new(1, 0, 0, 18)
-    currentLabel.BackgroundTransparency = 1
-    currentLabel.Font = Enum.Font.GothamBold
-    currentLabel.Text = "Current Prefix:"
-    currentLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-    currentLabel.TextSize = 12
-    currentLabel.TextXAlignment = Enum.TextXAlignment.Left
-    
-    -- Prefix display with copy button
-    local prefixFrame = Instance.new("Frame")
-    prefixFrame.Parent = content
-    prefixFrame.Size = UDim2.new(1, 0, 0, 40)
-    prefixFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    prefixFrame.BorderSizePixel = 0
-    
-    local prefixCorner = Instance.new("UICorner")
-    prefixCorner.CornerRadius = UDim.new(0, 6)
-    prefixCorner.Parent = prefixFrame
-    
-    local prefixText = Instance.new("TextLabel")
-    prefixText.Name = "PrefixText"
-    prefixText.Parent = prefixFrame
-    prefixText.Position = UDim2.new(0, 12, 0, 0)
-    prefixText.Size = UDim2.new(1, -80, 1, 0)
-    prefixText.BackgroundTransparency = 1
-    prefixText.Font = Enum.Font.GothamBold
-    prefixText.Text = self.Prefix
-    prefixText.TextColor3 = Color3.fromRGB(100, 255, 100)
-    prefixText.TextSize = 20
-    prefixText.TextXAlignment = Enum.TextXAlignment.Left
-    
-    local copyBtn = Instance.new("TextButton")
-    copyBtn.Parent = prefixFrame
-    copyBtn.AnchorPoint = Vector2.new(1, 0.5)
-    copyBtn.Position = UDim2.new(1, -10, 0.5, 0)
-    copyBtn.Size = UDim2.new(0, 60, 0, 26)
-    copyBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 120)
-    copyBtn.BorderSizePixel = 0
-    copyBtn.Font = Enum.Font.GothamBold
-    copyBtn.Text = "📋 Copy"
-    copyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    copyBtn.TextSize = 11
-    
-    local copyCorner = Instance.new("UICorner")
-    copyCorner.CornerRadius = UDim.new(0, 5)
-    copyCorner.Parent = copyBtn
-    
-    -- Preset buttons
-    local presetsLabel = Instance.new("TextLabel")
-    presetsLabel.Parent = content
-    presetsLabel.Size = UDim2.new(1, 0, 0, 18)
-    presetsLabel.BackgroundTransparency = 1
-    presetsLabel.Font = Enum.Font.GothamBold
-    presetsLabel.Text = "Quick Presets:"
-    presetsLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-    presetsLabel.TextSize = 12
-    presetsLabel.TextXAlignment = Enum.TextXAlignment.Left
-    
-    local presets = {".", "/", ";", "!", "-", ">", "$", "#"}
-    local presetGrid = Instance.new("Frame")
-    presetGrid.Parent = content
-    presetGrid.Size = UDim2.new(1, 0, 0, 0)
-    presetGrid.BackgroundTransparency = 1
-    presetGrid.AutomaticSize = Enum.AutomaticSize.Y
-    
-    local gridLayout = Instance.new("UIGridLayout")
-    gridLayout.Parent = presetGrid
-    gridLayout.CellSize = UDim2.new(0, 65, 0, 32)
-    gridLayout.CellPadding = UDim2.new(0, 5, 0, 5)
-    gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    
-    for _, prefix in ipairs(presets) do
-        local btn = Instance.new("TextButton")
-        btn.Parent = presetGrid
-        btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-        btn.BorderSizePixel = 0
-        btn.Font = Enum.Font.GothamBold
-        btn.Text = prefix
-        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        btn.TextSize = 18
+    -- Position displays
+    local function createCoordDisplay(parent, label, color)
+        local coordFrame = Instance.new("Frame")
+        coordFrame.Parent = parent
+        coordFrame.Size = UDim2.new(1, 0, 0, 45)
+        coordFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+        coordFrame.BorderSizePixel = 0
         
-        local btnCorner = Instance.new("UICorner")
-        btnCorner.CornerRadius = UDim.new(0, 5)
-        btnCorner.Parent = btn
+        local coordCorner = Instance.new("UICorner")
+        coordCorner.CornerRadius = UDim.new(0, 6)
+        coordCorner.Parent = coordFrame
         
-        btn.MouseButton1Click:Connect(function()
-            self.Prefix = prefix
-            prefixText.Text = prefix
-            print("[Commands] Prefix changed to:", prefix)
-        end)
+        local coordLabel = Instance.new("TextLabel")
+        coordLabel.Parent = coordFrame
+        coordLabel.Position = UDim2.new(0, 12, 0, 5)
+        coordLabel.Size = UDim2.new(1, -24, 0, 15)
+        coordLabel.BackgroundTransparency = 1
+        coordLabel.Font = Enum.Font.GothamBold
+        coordLabel.Text = label
+        coordLabel.TextColor3 = color
+        coordLabel.TextSize = 11
+        coordLabel.TextXAlignment = Enum.TextXAlignment.Left
         
-        btn.MouseEnter:Connect(function()
-            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-        end)
+        local valueLabel = Instance.new("TextLabel")
+        valueLabel.Name = "Value"
+        valueLabel.Parent = coordFrame
+        valueLabel.Position = UDim2.new(0, 12, 0, 22)
+        valueLabel.Size = UDim2.new(1, -24, 0, 18)
+        valueLabel.BackgroundTransparency = 1
+        valueLabel.Font = Enum.Font.GothamBold
+        valueLabel.Text = "0.000"
+        valueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        valueLabel.TextSize = 16
+        valueLabel.TextXAlignment = Enum.TextXAlignment.Left
         
-        btn.MouseLeave:Connect(function()
-            btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-        end)
+        return valueLabel
     end
     
+    local xValue = createCoordDisplay(content, "X Axis", Color3.fromRGB(255, 80, 80))
+    local yValue = createCoordDisplay(content, "Y Axis", Color3.fromRGB(80, 255, 80))
+    local zValue = createCoordDisplay(content, "Z Axis", Color3.fromRGB(80, 120, 255))
+    
+    -- Copy all button
+    local copyAllBtn = Instance.new("TextButton")
+    copyAllBtn.Parent = content
+    copyAllBtn.Size = UDim2.new(1, 0, 0, 35)
+    copyAllBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 120)
+    copyAllBtn.BorderSizePixel = 0
+    copyAllBtn.Font = Enum.Font.GothamBold
+    copyAllBtn.Text = "📋 Copy Position"
+    copyAllBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    copyAllBtn.TextSize = 12
+    
+    local copyAllCorner = Instance.new("UICorner")
+    copyAllCorner.CornerRadius = UDim.new(0, 6)
+    copyAllCorner.Parent = copyAllBtn
+    
+    -- Update position in real-time
+    if self.PositionUpdateConnection then
+        self.PositionUpdateConnection:Disconnect()
+    end
+    
+    self.PositionUpdateConnection = game:GetService("RunService").Heartbeat:Connect(function()
+        local character = Player.Character
+        if character then
+            local root = character:FindFirstChild("HumanoidRootPart")
+            if root then
+                local pos = root.Position
+                xValue.Text = string.format("%.3f", pos.X)
+                yValue.Text = string.format("%.3f", pos.Y)
+                zValue.Text = string.format("%.3f", pos.Z)
+            end
+        end
+    end)
+    
     -- Copy button functionality
-    copyBtn.MouseButton1Click:Connect(function()
-        setclipboard(self.Prefix)
-        copyBtn.Text = "✓ Copied"
-        copyBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 120)
-        task.wait(1)
-        copyBtn.Text = "📋 Copy"
-        copyBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 120)
+    copyAllBtn.MouseButton1Click:Connect(function()
+        local character = Player.Character
+        if character then
+            local root = character:FindFirstChild("HumanoidRootPart")
+            if root then
+                local pos = root.Position
+                local posText = string.format("X: %.3f, Y: %.3f, Z: %.3f", pos.X, pos.Y, pos.Z)
+                setclipboard(posText)
+                copyAllBtn.Text = "✓ Copied!"
+                copyAllBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 120)
+                task.wait(1)
+                copyAllBtn.Text = "📋 Copy Position"
+                copyAllBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 120)
+            end
+        end
     end)
     
     -- Close button functionality
     closeBtn.MouseButton1Click:Connect(function()
-        self:HidePrefixPanel()
+        self:HidePositionPanel()
     end)
     
-    self.PrefixPanel = frame
+    self.PositionPanel = frame
     return frame
 end
 
--- Show prefix panel
-function Commands:ShowPrefixPanel()
-    if not self.PrefixPanel then
-        self:CreatePrefixPanel()
+-- Show position panel
+function Commands:ShowPositionPanel()
+    if not self.PositionPanel then
+        self:CreatePositionPanel()
     else
-        self.PrefixPanel.Visible = true
+        self.PositionPanel.Visible = true
     end
 end
 
--- Hide prefix panel
-function Commands:HidePrefixPanel()
-    if self.PrefixPanel then
-        self.PrefixPanel.Visible = false
+-- Hide position panel
+function Commands:HidePositionPanel()
+    if self.PositionPanel then
+        self.PositionPanel.Visible = false
+        if self.PositionUpdateConnection then
+            self.PositionUpdateConnection:Disconnect()
+            self.PositionUpdateConnection = nil
+        end
     end
 end
 
--- Toggle prefix panel
-function Commands:TogglePrefixPanel()
-    if self.PrefixPanel and self.PrefixPanel.Visible then
-        self:HidePrefixPanel()
+-- Toggle position panel
+function Commands:TogglePositionPanel()
+    if self.PositionPanel and self.PositionPanel.Visible then
+        self:HidePositionPanel()
     else
-        self:ShowPrefixPanel()
+        self:ShowPositionPanel()
     end
 end
 
@@ -479,9 +464,13 @@ function Commands:RegisterBuiltInCommands()
         end
     end)
     
-    -- Prefix command
-    self:Register("prefix", "Show/change command prefix", function(args)
-        self:ShowPrefixPanel()
+    -- Position command
+    self:Register("pos", "Show position display", function(args)
+        self:ShowPositionPanel()
+    end)
+    
+    self:Register("position", "Show position display", function(args)
+        self:ShowPositionPanel()
     end)
 end
 
