@@ -77,27 +77,34 @@ local function castRod()
     
     local tool = character:FindFirstChildOfClass("Tool")
     if not tool then
-        -- Check backpack
-        tool = Player.Backpack:FindFirstChildOfClass("Tool")
-        if tool then
-            -- Equip the tool
-            character.Humanoid:EquipTool(tool)
-            task.wait(0.3)
-        else
+        -- Check backpack for rod
+        for _, item in pairs(Player.Backpack:GetChildren()) do
+            if item:IsA("Tool") and (item.Name:lower():find("rod") or item.Name:lower():find("fishing")) then
+                tool = item
+                character.Humanoid:EquipTool(tool)
+                task.wait(0.5)
+                break
+            end
+        end
+        
+        if not tool then
             return false
         end
     end
     
-    -- Cast the rod (simulate mouse click)
-    local args = {"fishing", "cast"}
-    
-    -- Try different methods to cast
+    -- Activate tool (cast)
     pcall(function()
-        -- Method 1: Try firing remote
-        if ReplicatedStorage:FindFirstChild("events") then
-            local events = ReplicatedStorage.events
-            if events:FindFirstChild("fishing") then
-                events.fishing:FireServer(unpack(args))
+        tool:Activate()
+    end)
+    
+    -- Also try remote event
+    pcall(function()
+        local events = ReplicatedStorage:FindFirstChild("events")
+        if events then
+            for _, remote in pairs(events:GetChildren()) do
+                if remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction") then
+                    remote:FireServer("cast")
+                end
             end
         end
     end)
@@ -105,18 +112,37 @@ local function castRod()
     return true
 end
 
-local function reelIn()
-    -- Try to reel in fish
-    local args = {"fishing", "reel"}
+local function spamReelIn(duration)
+    -- Spam click to reel in fish (Fisch game mechanic)
+    local startTime = tick()
     
-    pcall(function()
-        if ReplicatedStorage:FindFirstChild("events") then
-            local events = ReplicatedStorage.events
-            if events:FindFirstChild("fishing") then
-                events.fishing:FireServer(unpack(args))
+    while tick() - startTime < duration and autoFishEnabled do
+        local character = Player.Character
+        if character then
+            local tool = character:FindFirstChildOfClass("Tool")
+            
+            if tool then
+                -- Activate tool (reel click)
+                pcall(function()
+                    tool:Activate()
+                end)
+                
+                -- Also try remote for reeling
+                pcall(function()
+                    local events = ReplicatedStorage:FindFirstChild("events")
+                    if events then
+                        for _, remote in pairs(events:GetChildren()) do
+                            if remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction") then
+                                remote:FireServer("reel")
+                            end
+                        end
+                    end
+                end)
             end
         end
-    end)
+        
+        task.wait(0.1) -- Spam every 0.1 second
+    end
     
     return true
 end
@@ -126,17 +152,43 @@ local function checkBobber()
     local character = Player.Character
     if not character then return false end
     
-    -- Look for bobber in workspace
-    local bobber = workspace:FindFirstChild(Player.Name .. "'s bobber", true)
-    if not bobber then
-        bobber = workspace:FindFirstChild("bobber", true)
+    -- Look for bobber in workspace  
+    local bobber = nil
+    
+    -- Method 1: Check workspace for bobber
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj.Name:lower():find("bobber") or obj.Name:lower():find("float") then
+            if obj:IsA("BasePart") or obj:IsA("Model") then
+                bobber = obj
+                break
+            end
+        end
     end
     
     if bobber then
-        -- Check if bobber has a fish (usually indicated by shake or particle effect)
-        local hasParticle = bobber:FindFirstChildOfClass("ParticleEmitter")
+        -- Check if bobber has particle effect (fish caught indicator)
+        local hasParticle = bobber:FindFirstChildOfClass("ParticleEmitter", true)
         if hasParticle then
             return true
+        end
+        
+        -- Check for splash sound
+        local hasSound = bobber:FindFirstChildOfClass("Sound", true)
+        if hasSound and hasSound.IsPlaying then
+            return true
+        end
+    end
+    
+    -- Method 2: Check PlayerGui for fishing prompt
+    local playerGui = Player:FindFirstChild("PlayerGui")
+    if playerGui then
+        for _, gui in pairs(playerGui:GetDescendants()) do
+            if gui:IsA("TextLabel") or gui:IsA("TextButton") then
+                local text = gui.Text:lower()
+                if text:find("reel") or text:find("catch") or text:find("!") then
+                    return true
+                end
+            end
         end
     end
     
@@ -157,15 +209,15 @@ local function autoFishLoop()
                 
                 while waited < maxWait and autoFishEnabled do
                     if checkBobber() then
-                        -- Fish caught! Reel in
+                        -- Fish caught! Spam reel in
                         task.wait(0.2)
-                        reelIn()
-                        task.wait(2) -- Wait for reel animation
+                        spamReelIn(3) -- Spam click for 3 seconds
+                        task.wait(1.5) -- Wait for catch animation
                         break
                     end
                     
-                    task.wait(0.5)
-                    waited = waited + 0.5
+                    task.wait(0.3)
+                    waited = waited + 0.3
                 end
             end
             
