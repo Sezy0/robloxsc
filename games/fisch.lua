@@ -26,6 +26,8 @@ local Window = NextUI:Window({
 -- Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 local Player = Players.LocalPlayer
 
 -- Island Locations
@@ -56,6 +58,139 @@ local function TeleportTo(position)
     hrp.CFrame = CFrame.new(position)
     return true
 end
+
+-- ============================================
+-- MAIN TAB
+-- ============================================
+local MainTab = Window:Tab("Main", "🏠")
+
+local FishingSection = MainTab:Section("🎣 Auto Fishing")
+
+-- Auto Fish variables
+local autoFishEnabled = false
+local autoFishConnection = nil
+
+local function castRod()
+    -- Try to find fishing rod tool
+    local character = Player.Character
+    if not character then return false end
+    
+    local tool = character:FindFirstChildOfClass("Tool")
+    if not tool then
+        -- Check backpack
+        tool = Player.Backpack:FindFirstChildOfClass("Tool")
+        if tool then
+            -- Equip the tool
+            character.Humanoid:EquipTool(tool)
+            task.wait(0.3)
+        else
+            return false
+        end
+    end
+    
+    -- Cast the rod (simulate mouse click)
+    local args = {"fishing", "cast"}
+    
+    -- Try different methods to cast
+    pcall(function()
+        -- Method 1: Try firing remote
+        if ReplicatedStorage:FindFirstChild("events") then
+            local events = ReplicatedStorage.events
+            if events:FindFirstChild("fishing") then
+                events.fishing:FireServer(unpack(args))
+            end
+        end
+    end)
+    
+    return true
+end
+
+local function reelIn()
+    -- Try to reel in fish
+    local args = {"fishing", "reel"}
+    
+    pcall(function()
+        if ReplicatedStorage:FindFirstChild("events") then
+            local events = ReplicatedStorage.events
+            if events:FindFirstChild("fishing") then
+                events.fishing:FireServer(unpack(args))
+            end
+        end
+    end)
+    
+    return true
+end
+
+local function checkBobber()
+    -- Check if bobber is in water and fish is caught
+    local character = Player.Character
+    if not character then return false end
+    
+    -- Look for bobber in workspace
+    local bobber = workspace:FindFirstChild(Player.Name .. "'s bobber", true)
+    if not bobber then
+        bobber = workspace:FindFirstChild("bobber", true)
+    end
+    
+    if bobber then
+        -- Check if bobber has a fish (usually indicated by shake or particle effect)
+        local hasParticle = bobber:FindFirstChildOfClass("ParticleEmitter")
+        if hasParticle then
+            return true
+        end
+    end
+    
+    return false
+end
+
+local function autoFishLoop()
+    while autoFishEnabled do
+        local character = Player.Character
+        if character then
+            -- Cast the rod
+            local casted = castRod()
+            
+            if casted then
+                -- Wait for fish (check bobber)
+                local maxWait = 30 -- Max 30 seconds
+                local waited = 0
+                
+                while waited < maxWait and autoFishEnabled do
+                    if checkBobber() then
+                        -- Fish caught! Reel in
+                        task.wait(0.2)
+                        reelIn()
+                        task.wait(2) -- Wait for reel animation
+                        break
+                    end
+                    
+                    task.wait(0.5)
+                    waited = waited + 0.5
+                end
+            end
+            
+            task.wait(1) -- Wait before next cast
+        else
+            task.wait(1)
+        end
+    end
+end
+
+FishingSection:Toggle("Auto Fish", false, function(state)
+    autoFishEnabled = state
+    
+    if state then
+        NextUI:Notification("Auto Fish", "Enabled! Casting rod...", 2)
+        -- Start auto fishing in separate thread
+        task.spawn(autoFishLoop)
+    else
+        NextUI:Notification("Auto Fish", "Disabled", 1.5)
+    end
+end)
+
+FishingSection:Label("")
+FishingSection:Label("💡 Otomatis lempar kail & tarik ikan")
+FishingSection:Label("⚠️ Pastikan rod sudah equipped")
 
 -- ============================================
 -- INFO TAB
@@ -240,7 +375,8 @@ print([[
   Created by: Foxzy
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   
-  Simple UI with 3 tabs:
+  Simple UI with 4 tabs:
+  • 🏠 Main - Auto Fish!
   • ℹ️  Info - About Foxzy & script
   • 📍 Teleport - Island teleport ready!
   • ⚙️  Other - NoClip & more
