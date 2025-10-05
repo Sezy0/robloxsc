@@ -7,21 +7,16 @@
 print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 print("  🎣 Fisch Script by Foxzy")
 print("  Version: 1.0.0")
-print("  Loading...")
+print("  Loading NextUI...")
 print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
--- Load Dev Tools
-local DevTools = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezy0/robloxsc/main/devtools/init.lua"))()
-DevTools:Init()
-
--- Get modules
-local UIManager = DevTools:GetModule("ui_manager")
-local Teleport = DevTools:GetModule("teleport")
-local Fly = DevTools:GetModule("fly")
-local Commands = DevTools:GetModule("commands")
-
--- Quick setup UI
-local Window = UIManager:QuickSetup("Fisch Script v1.0")
+-- Load NextUI Library
+local NextUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sezy0/robloxsc/main/devtools/libs/nextui.lua"))()
+local Window = NextUI:Window({
+    Title = "Fisch Script v1.0",
+    SubTitle = "by Foxzy",
+    Size = UDim2.fromOffset(500, 400)
+})
 
 -- Services
 local Players = game:GetService("Players")
@@ -34,6 +29,18 @@ local TeleportLocations = {
     -- {name = "Spawn", position = Vector3.new(0, 10, 0)},
     -- {name = "Shop", position = Vector3.new(50, 5, 100)},
 }
+
+-- Simple Teleport Function
+local function TeleportTo(position)
+    local character = Player.Character
+    if not character then return false end
+    
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return false end
+    
+    hrp.CFrame = CFrame.new(position)
+    return true
+end
 
 -- ============================================
 -- INFO TAB
@@ -67,18 +74,23 @@ if #TeleportLocations == 0 then
     TeleportSection:Label("⚠️ No teleport locations yet")
     TeleportSection:Label("")
     TeleportSection:Label("Locations will be added soon!")
-    TeleportSection:Label("")
-    TeleportSection:Label("💡 Tip: Use Position Display")
-    TeleportSection:Label("to find coordinates of locations")
 else
     -- Add teleport buttons for each location
     for i, location in ipairs(TeleportLocations) do
         TeleportSection:Button(location.name, function()
-            local success = Teleport:ToPosition(location.position)
+            local success = TeleportTo(location.position)
             if success then
-                UIManager:Notify("Teleported", "→ " .. location.name, 1.5)
+                Window:Notify({
+                    Title = "Teleported",
+                    Content = "→ " .. location.name,
+                    Duration = 1.5
+                })
             else
-                UIManager:Notify("Failed", "Teleport failed!", 1.5)
+                Window:Notify({
+                    Title = "Failed",
+                    Content = "Teleport failed!",
+                    Duration = 1.5
+                })
             end
         end)
     end
