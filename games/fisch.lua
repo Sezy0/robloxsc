@@ -112,28 +112,26 @@ local function castRod()
     return true
 end
 
-local function spamReelIn(duration)
-    -- Spam click to reel in fish (Fisch game mechanic)
-    local startTime = tick()
-    
-    while tick() - startTime < duration and autoFishEnabled do
+local function autoClickLoop()
+    -- Auto spam click terus dengan random delay
+    while autoFishEnabled do
         local character = Player.Character
         if character then
             local tool = character:FindFirstChildOfClass("Tool")
             
             if tool then
-                -- Activate tool (reel click)
+                -- Click/Activate tool
                 pcall(function()
                     tool:Activate()
                 end)
                 
-                -- Also try remote for reeling
+                -- Also try remote events
                 pcall(function()
                     local events = ReplicatedStorage:FindFirstChild("events")
                     if events then
                         for _, remote in pairs(events:GetChildren()) do
                             if remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction") then
-                                remote:FireServer("reel")
+                                remote:FireServer("reelfinished")
                             end
                         end
                     end
@@ -141,10 +139,10 @@ local function spamReelIn(duration)
             end
         end
         
-        task.wait(0.1) -- Spam every 0.1 second
+        -- Random delay 0.5s - 1s
+        local randomDelay = math.random(50, 100) / 100 -- 0.5 to 1.0 seconds
+        task.wait(randomDelay)
     end
-    
-    return true
 end
 
 local function checkBobber()
@@ -195,54 +193,24 @@ local function checkBobber()
     return false
 end
 
-local function autoFishLoop()
-    while autoFishEnabled do
-        local character = Player.Character
-        if character then
-            -- Cast the rod
-            local casted = castRod()
-            
-            if casted then
-                -- Wait for fish (check bobber)
-                local maxWait = 30 -- Max 30 seconds
-                local waited = 0
-                
-                while waited < maxWait and autoFishEnabled do
-                    if checkBobber() then
-                        -- Fish caught! Spam reel in
-                        task.wait(0.2)
-                        spamReelIn(3) -- Spam click for 3 seconds
-                        task.wait(1.5) -- Wait for catch animation
-                        break
-                    end
-                    
-                    task.wait(0.3)
-                    waited = waited + 0.3
-                end
-            end
-            
-            task.wait(1) -- Wait before next cast
-        else
-            task.wait(1)
-        end
-    end
-end
+-- Auto fish removed - just use auto click spam
 
-FishingSection:Toggle("Auto Fish", false, function(state)
+FishingSection:Toggle("Auto Fish (Spam Click)", false, function(state)
     autoFishEnabled = state
     
     if state then
-        NextUI:Notification("Auto Fish", "Enabled! Casting rod...", 2)
-        -- Start auto fishing in separate thread
-        task.spawn(autoFishLoop)
+        NextUI:Notification("Auto Fish", "Enabled! Auto clicking...", 2)
+        -- Start auto click loop
+        task.spawn(autoClickLoop)
     else
         NextUI:Notification("Auto Fish", "Disabled", 1.5)
     end
 end)
 
 FishingSection:Label("")
-FishingSection:Label("💡 Otomatis lempar kail & tarik ikan")
-FishingSection:Label("⚠️ Pastikan rod sudah equipped")
+FishingSection:Label("💡 Spam click otomatis (delay random)")
+FishingSection:Label("🔄 Delay: 0.5s - 1s (random)")
+FishingSection:Label("⚠️ Equip rod & mulai fishing manual")
 
 -- ============================================
 -- INFO TAB
