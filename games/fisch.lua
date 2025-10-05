@@ -25,6 +25,7 @@ local Window = NextUI:Window({
 
 -- Services
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local Player = Players.LocalPlayer
 
 -- Island Locations
@@ -118,6 +119,65 @@ IslandSection:Button("🚀 Teleport to Selected Island", function()
     end
 end)
 
+-- ============================================
+-- OTHER TAB
+-- ============================================
+local OtherTab = Window:Tab("Other", "⚙️")
+
+local MovementSection = OtherTab:Section("🚶 Movement")
+
+-- NoClip variables
+local noclipEnabled = false
+local noclipConnection = nil
+
+local function enableNoClip()
+    if noclipConnection then return end
+    
+    noclipConnection = RunService.Stepped:Connect(function()
+        local character = Player.Character
+        if character then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end)
+end
+
+local function disableNoClip()
+    if noclipConnection then
+        noclipConnection:Disconnect()
+        noclipConnection = nil
+    end
+    
+    -- Restore collision
+    local character = Player.Character
+    if character then
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                if part.Name ~= "HumanoidRootPart" then
+                    part.CanCollide = true
+                end
+            end
+        end
+    end
+end
+
+MovementSection:Toggle("NoClip (Nembus Tembok)", false, function(state)
+    noclipEnabled = state
+    
+    if state then
+        enableNoClip()
+        NextUI:Notification("NoClip", "Enabled! You can walk through walls", 2)
+    else
+        disableNoClip()
+        NextUI:Notification("NoClip", "Disabled", 1.5)
+    end
+end)
+
+MovementSection:Label("")
+MovementSection:Label("💡 Aktifkan untuk jalan tembus tembok")
 
 -- ============================================
 -- COMPLETION
@@ -128,9 +188,10 @@ print([[
   Created by: Foxzy
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   
-  Simple UI with 2 tabs:
+  Simple UI with 3 tabs:
   • ℹ️  Info - About Foxzy & script
   • 📍 Teleport - Island teleport ready!
+  • ⚙️  Other - NoClip & more
   
   🏝️ Islands Available:
   • Weather Machine
