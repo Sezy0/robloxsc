@@ -35,8 +35,15 @@ local Islands = {
     {name = "Esoteric Depths", position = Vector3.new(3257.165, -1300.655, 1390.807)},
 }
 
--- Selected island (default first)
+-- NPC Locations
+local NPCs = {
+    {name = "Lava Fisherman", position = Vector3.new(-595.717, 59.000, 135.619)},
+    {name = "Esoteric Gatekeeper", position = Vector3.new(2101.216, -29.026, 1351.308)},
+}
+
+-- Selected island & NPC (default first)
 local selectedIsland = Islands[1]
+local selectedNPC = NPCs[1]
 
 -- Simple Teleport Function
 local function TeleportTo(position)
@@ -107,6 +114,51 @@ IslandSection:Button("🚀 Teleport to Selected Island", function()
             Window:Notify({
                 Title = "Teleported!",
                 Content = "→ " .. selectedIsland.name,
+                Duration = 2
+            })
+        else
+            Window:Notify({
+                Title = "Failed",
+                Content = "Teleport failed!",
+                Duration = 1.5
+            })
+        end
+    end
+end)
+
+-- NPC Teleport Section
+local NPCSection = TeleportTab:Section("👤 NPC Teleport")
+
+-- Create NPC names list for dropdown
+local npcNames = {}
+for i, npc in ipairs(NPCs) do
+    table.insert(npcNames, npc.name)
+end
+
+-- Dropdown to select NPC
+NPCSection:Dropdown("Select NPC", npcNames, function(selected)
+    -- Find the selected NPC
+    for i, npc in ipairs(NPCs) do
+        if npc.name == selected then
+            selectedNPC = npc
+            Window:Notify({
+                Title = "NPC Selected",
+                Content = selected,
+                Duration = 1.5
+            })
+            break
+        end
+    end
+end)
+
+-- Teleport to NPC button
+NPCSection:Button("🚀 Teleport to Selected NPC", function()
+    if selectedNPC then
+        local success = TeleportTo(selectedNPC.position)
+        if success then
+            Window:Notify({
+                Title = "Teleported!",
+                Content = "→ " .. selectedNPC.name,
                 Duration = 2
             })
         else
@@ -197,5 +249,9 @@ print([[
   • Weather Machine
   • Tropical Grove
   • Esoteric Depths
+  
+  👤 NPCs Available:
+  • Lava Fisherman
+  • Esoteric Gatekeeper
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ]])
