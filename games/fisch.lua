@@ -22,13 +22,15 @@ local Window = NextUI:Window({
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 
--- Teleport Locations (Empty for now - akan diisi nanti)
-local TeleportLocations = {
-    -- Format: {name = "Location Name", position = Vector3.new(x, y, z)}
-    -- Example:
-    -- {name = "Spawn", position = Vector3.new(0, 10, 0)},
-    -- {name = "Shop", position = Vector3.new(50, 5, 100)},
+-- Island Locations
+local Islands = {
+    {name = "Weather Machine", position = Vector3.new(-1498.268, 6.451, 1895.814)},
+    {name = "Tropical Grove", position = Vector3.new(-2031.045, 6.268, 3678.402)},
+    {name = "Esoteric Depths", position = Vector3.new(3257.165, -1300.655, 1390.807)},
 }
+
+-- Selected island (default first)
+local selectedIsland = Islands[1]
 
 -- Simple Teleport Function
 local function TeleportTo(position)
@@ -67,34 +69,49 @@ ContactSection:Label("💡 More features coming soon!")
 -- ============================================
 local TeleportTab = Window:Tab("Teleport", "📍")
 
-local TeleportSection = TeleportTab:Section("📍 Locations")
+local IslandSection = TeleportTab:Section("🏝️ Island Teleport")
 
--- Check if locations are available
-if #TeleportLocations == 0 then
-    TeleportSection:Label("⚠️ No teleport locations yet")
-    TeleportSection:Label("")
-    TeleportSection:Label("Locations will be added soon!")
-else
-    -- Add teleport buttons for each location
-    for i, location in ipairs(TeleportLocations) do
-        TeleportSection:Button(location.name, function()
-            local success = TeleportTo(location.position)
-            if success then
-                Window:Notify({
-                    Title = "Teleported",
-                    Content = "→ " .. location.name,
-                    Duration = 1.5
-                })
-            else
-                Window:Notify({
-                    Title = "Failed",
-                    Content = "Teleport failed!",
-                    Duration = 1.5
-                })
-            end
-        end)
-    end
+-- Create island names list for dropdown
+local islandNames = {}
+for i, island in ipairs(Islands) do
+    table.insert(islandNames, island.name)
 end
+
+-- Dropdown to select island
+IslandSection:Dropdown("Select Island", islandNames, function(selected)
+    -- Find the selected island
+    for i, island in ipairs(Islands) do
+        if island.name == selected then
+            selectedIsland = island
+            Window:Notify({
+                Title = "Island Selected",
+                Content = selected,
+                Duration = 1.5
+            })
+            break
+        end
+    end
+end)
+
+-- Teleport button
+IslandSection:Button("🚀 Teleport to Selected Island", function()
+    if selectedIsland then
+        local success = TeleportTo(selectedIsland.position)
+        if success then
+            Window:Notify({
+                Title = "Teleported!",
+                Content = "→ " .. selectedIsland.name,
+                Duration = 2
+            })
+        else
+            Window:Notify({
+                Title = "Failed",
+                Content = "Teleport failed!",
+                Duration = 1.5
+            })
+        end
+    end
+end)
 
 
 -- ============================================
@@ -108,8 +125,11 @@ print([[
   
   Simple UI with 2 tabs:
   • ℹ️  Info - About Foxzy & script
-  • 📍 Teleport - Locations (empty)
+  • 📍 Teleport - Island teleport ready!
   
-  💡 Teleport locations will be added soon!
+  🏝️ Islands Available:
+  • Weather Machine
+  • Tropical Grove
+  • Esoteric Depths
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ]])
