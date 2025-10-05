@@ -1,11 +1,11 @@
 -- ============================================
--- Fisch Script by Sezy
+-- Fisch Script by Foxzy
 -- Game: Fisch (Fishing Game)
 -- Version: 1.0.0
 -- ============================================
 
 print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-print("  🎣 Fisch Script by Sezy")
+print("  🎣 Fisch Script by Foxzy")
 print("  Version: 1.0.0")
 print("  Loading...")
 print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
@@ -36,32 +36,24 @@ local TeleportLocations = {
 }
 
 -- ============================================
--- MAIN TAB
+-- INFO TAB
 -- ============================================
-local MainTab = Window:Tab("Main", "🏠")
+local InfoTab = Window:Tab("Info", "ℹ️")
 
-local InfoSection = MainTab:Section("ℹ️ Information")
-InfoSection:Label("🎣 Fisch Script by Sezy")
-InfoSection:Label("Game: Fisch (Fishing)")
-InfoSection:Label("")
-InfoSection:Label("Status: Active ✅")
-InfoSection:Label("Version: 1.0.0")
+local AboutSection = InfoTab:Section("👤 About")
+AboutSection:Label("🎣 Fisch Script")
+AboutSection:Label("")
+AboutSection:Label("Created by: Foxzy")
+AboutSection:Label("Version: 1.0.0")
+AboutSection:Label("Game: Fisch")
+AboutSection:Label("")
+AboutSection:Label("Status: Active ✅")
 
-local QuickSection = MainTab:Section("⚡ Quick Actions")
-QuickSection:Button("Show Position", function()
-    Commands:ShowPositionPanel()
-    UIManager:Notify("Position", "Opening display...", 1.5)
-end)
-
-QuickSection:Button("Show Commands", function()
-    print("\n━━━━━━━━━ AVAILABLE COMMANDS ━━━━━━━━━")
-    print("  .fly - Toggle fly mode")
-    print("  .speed 50 - Set walk speed")
-    print("  .pos - Show position display")
-    print("  .help - Show all commands")
-    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
-    UIManager:Notify("Commands", "Check console for list", 2)
-end)
+local ContactSection = InfoTab:Section("📞 Contact")
+ContactSection:Label("Developer: Foxzy")
+ContactSection:Label("GitHub: Sezy0/robloxsc")
+ContactSection:Label("")
+ContactSection:Label("💡 More features coming soon!")
 
 -- ============================================
 -- TELEPORT TAB
@@ -92,142 +84,6 @@ else
     end
 end
 
--- Manual teleport section
-local ManualSection = TeleportTab:Section("🎯 Manual Teleport")
-ManualSection:Label("Use Position Display to get coords")
-ManualSection:Label("Then use command:")
-ManualSection:Label(".tp x y z")
-
--- ============================================
--- PLAYER TAB
--- ============================================
-local PlayerTab = Window:Tab("Player", "🏃")
-
-local MovementSection = PlayerTab:Section("✈️ Movement")
-MovementSection:Toggle("Enable Fly", false, function(state)
-    Fly:Toggle(state)
-    if state then
-        UIManager:Notify("Fly", "Enabled! WASD to move", 2)
-    else
-        UIManager:Notify("Fly", "Disabled", 1.5)
-    end
-end)
-
-MovementSection:Button("Fly Speed: 25", function()
-    Fly:SetSpeed(25)
-    UIManager:Notify("Fly Speed", "Set to 25", 1.5)
-end)
-
-MovementSection:Button("Fly Speed: 50", function()
-    Fly:SetSpeed(50)
-    UIManager:Notify("Fly Speed", "Set to 50", 1.5)
-end)
-
-MovementSection:Button("Fly Speed: 100", function()
-    Fly:SetSpeed(100)
-    UIManager:Notify("Fly Speed", "Set to 100", 1.5)
-end)
-
-local SpeedSection = PlayerTab:Section("🏃 Walk Speed")
-SpeedSection:Button("Speed: 16 (Normal)", function()
-    local character = Player.Character
-    if character then
-        local humanoid = character:FindFirstChild("Humanoid")
-        if humanoid then
-            humanoid.WalkSpeed = 16
-            UIManager:Notify("Speed", "Normal (16)", 1.5)
-        end
-    end
-end)
-
-SpeedSection:Button("Speed: 50 (Fast)", function()
-    local character = Player.Character
-    if character then
-        local humanoid = character:FindFirstChild("Humanoid")
-        if humanoid then
-            humanoid.WalkSpeed = 50
-            UIManager:Notify("Speed", "Fast (50)", 1.5)
-        end
-    end
-end)
-
-SpeedSection:Button("Speed: 100 (Very Fast)", function()
-    local character = Player.Character
-    if character then
-        local humanoid = character:FindFirstChild("Humanoid")
-        if humanoid then
-            humanoid.WalkSpeed = 100
-            UIManager:Notify("Speed", "Very Fast (100)", 1.5)
-        end
-    end
-end)
-
-local PowerSection = PlayerTab:Section("🛡️ Powers")
-PowerSection:Toggle("God Mode", false, function(state)
-    local character = Player.Character
-    if character then
-        local humanoid = character:FindFirstChild("Humanoid")
-        if humanoid then
-            if state then
-                humanoid.MaxHealth = math.huge
-                humanoid.Health = math.huge
-                UIManager:Notify("God Mode", "Enabled!", 1.5)
-            else
-                humanoid.MaxHealth = 100
-                humanoid.Health = 100
-                UIManager:Notify("God Mode", "Disabled", 1.5)
-            end
-        end
-    end
-end)
-
--- ============================================
--- FISHING TAB (Game-specific features)
--- ============================================
-local FishingTab = Window:Tab("Fishing", "🎣")
-
-local FishSection = FishingTab:Section("🎣 Fishing Features")
-FishSection:Label("⚠️ Coming Soon!")
-FishSection:Label("")
-FishSection:Label("Features in development:")
-FishSection:Label("• Auto Fish")
-FishSection:Label("• Auto Sell")
-FishSection:Label("• Fish ESP")
-FishSection:Label("• Best Spot Finder")
-
--- ============================================
--- SETTINGS TAB
--- ============================================
-local SettingsTab = Window:Tab("Settings", "⚙️")
-
-local InfoSection2 = SettingsTab:Section("ℹ️ Information")
-InfoSection2:Label("Script: Fisch by Sezy")
-InfoSection2:Label("Version: 1.0.0")
-InfoSection2:Label("Game: Fisch")
-InfoSection2:Label("")
-InfoSection2:Label("GitHub: Sezy0/robloxsc")
-
-local FeatureSection = SettingsTab:Section("✨ Features")
-FeatureSection:Label("✅ Teleport System (Empty)")
-FeatureSection:Label("✅ Fly & Speed Control")
-FeatureSection:Label("✅ God Mode")
-FeatureSection:Label("✅ Position Display")
-FeatureSection:Label("✅ Command System (.help)")
-FeatureSection:Label("")
-FeatureSection:Label("⏳ Auto Fishing (Coming Soon)")
-FeatureSection:Label("⏳ Auto Sell (Coming Soon)")
-
-local ActionsSection = SettingsTab:Section("🔧 Actions")
-ActionsSection:Button("Unload Script", function()
-    DevTools:Unload()
-    UIManager:Notify("Unloaded", "Script unloaded", 2)
-    task.wait(1)
-    if Window then
-        pcall(function()
-            Window:Destroy()
-        end)
-    end
-end)
 
 -- ============================================
 -- COMPLETION
@@ -235,20 +91,13 @@ end)
 print([[
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   🎣 Fisch Script - Ready!
+  Created by: Foxzy
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   
-  Features:
-  • 📍 Teleport System (Menu ready)
-  • ✈️  Fly & Movement Controls
-  • 🏃 Speed Controls
-  • 🛡️  God Mode
-  • 💬 Command System
+  Simple UI with 2 tabs:
+  • ℹ️  Info - About Foxzy & script
+  • 📍 Teleport - Locations (empty)
   
-  💡 Quick Start:
-  • Use Position Display to find coords
-  • Type .help for commands
-  • Check Teleport tab (empty for now)
-  
-  🎣 Fishing features coming soon!
+  💡 Teleport locations will be added soon!
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ]])
