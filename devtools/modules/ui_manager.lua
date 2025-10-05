@@ -10,7 +10,7 @@ UIManager.Window = nil
 UIManager.Authenticated = false
 
 -- NextUI GitHub URL
-local NEXTUI_URL = "https://raw.githubusercontent.com/Sezy0/LIBui/main/nextjs_mobile_compact/init.lua"
+local NEXTUI_URL = "https://pastebin.com/raw/cSDyP4Ta"
 
 function UIManager:Init()
     print("[UIManager] Initializing...")
