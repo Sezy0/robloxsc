@@ -76,14 +76,46 @@ end
 
 -- Quick setup (auth + window)
 function UIManager:QuickSetup(windowTitle)
-    self:Auth()
+    if not self.NextUI then
+        warn("[UIManager] NextUI not loaded!")
+        return nil
+    end
     
-    -- Wait a bit for auth to complete
-    task.wait(0.1)
+    -- Authenticate with callback to create window
+    local window = nil
+    local authComplete = false
     
-    return self:CreateWindow({
-        Title = windowTitle or "Dev Tools by Sezy"
+    self.NextUI:Auth({
+        UseKeySystem = false,
+        OnSuccess = function()
+            self.Authenticated = true
+            print("[UIManager] ✓ Authenticated!")
+            
+            -- Wait a frame for auth to fully set
+            task.wait()
+            
+            -- Create window
+            window = self:CreateWindow({
+                Title = windowTitle or "Dev Tools by Sezy"
+            })
+            authComplete = true
+        end
     })
+    
+    -- Wait for auth and window creation to complete
+    local maxWait = 5 -- 5 seconds timeout
+    local waited = 0
+    while not authComplete and waited < maxWait do
+        task.wait(0.1)
+        waited = waited + 0.1
+    end
+    
+    if not authComplete then
+        warn("[UIManager] Authentication timeout!")
+        return nil
+    end
+    
+    return window
 end
 
 -- Send notification
