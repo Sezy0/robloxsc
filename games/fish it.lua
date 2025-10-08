@@ -7,9 +7,14 @@ local Player = Players.LocalPlayer
 
 -- Remote Functions (with safe loading)
 local RFUpdateAutoFishingState = nil
+local RFSellAllItems = nil
 
 pcall(function()
     RFUpdateAutoFishingState = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RF/UpdateAutoFishingState"]
+end)
+
+pcall(function()
+    RFSellAllItems = ReplicatedStorage.Packages._Index["sleitnick_net@0.2.0"].net["RF/SellAllItems"]
 end)
 
 -- Auth & UI Setup
@@ -21,7 +26,7 @@ NextUI:Auth({
     OnSuccess = function()
         
 local Window = NextUI:Window({
-    Title = "Fish It v3.2",
+    Title = "Fish It v3.2.2",
     LogoId = "133508780883906"
 })
 
@@ -134,6 +139,59 @@ for _, npc in ipairs(NPCs) do
 end
 
 -- ============================================
+-- SHOP TAB
+-- ============================================
+local ShopTab = Window:Tab("Shop")
+local ShopSection = ShopTab:Section("Auto Sell Fish")
+local autoSellActive = false
+local autoSellLoop = nil
+
+ShopSection:Toggle("Auto Sell All Fish (5 min)", false, function(state)
+    autoSellActive = state
+
+    if state then
+        -- Start Auto Sell loop
+        autoSellLoop = task.spawn(function()
+            while autoSellActive do
+                if RFSellAllItems then
+                    local success = pcall(function()
+                        RFSellAllItems:InvokeServer()
+                    end)
+                    if success then
+                        NextUI:Notification("Auto Sell", "Fish sold", 1.5)
+                    else
+                        NextUI:Notification("Auto Sell Error", "Failed to sell", 1.5)
+                    end
+                else
+                    NextUI:Notification("Auto Sell Error", "Remote not found", 1.5)
+                    autoSellActive = false -- Stop if remote not found
+                    break
+                end
+
+                -- Wait 5 minutes (300 seconds)
+                task.wait(300)
+            end
+        end)
+
+        NextUI:Notification("Auto Sell", "Enabled", 1.5)
+    else
+        -- Stop Auto Sell
+        if autoSellLoop then
+            task.cancel(autoSellLoop)
+            autoSellLoop = nil
+        end
+        NextUI:Notification("Auto Sell", "Disabled", 1.5)
+    end
+end)
+
+ShopSection:Label("")
+if RFSellAllItems then
+    ShopSection:Label("Server-side auto sell every 5 minutes")
+else
+    ShopSection:Label("Remote not detected")
+end
+
+-- ============================================
 -- INFO TAB
 -- ============================================
 local InfoTab = Window:Tab("Info")
@@ -142,7 +200,7 @@ local AboutSection = InfoTab:Section("About")
 AboutSection:Label("Fish It Script")
 AboutSection:Label("")
 AboutSection:Label("Created by: Foxzy")
-AboutSection:Label("Version: 3.2.1")
+AboutSection:Label("Version: 3.2.2")
 AboutSection:Label("")
 AboutSection:Label("Status: Active")
 
@@ -151,12 +209,13 @@ ContactSection:Label("Developer: Foxzy")
 ContactSection:Label("")
 ContactSection:Label("Clean & Safe Version")
 
-local ChangelogSection = InfoTab:Section("Changelog v3.2")
+local ChangelogSection = InfoTab:Section("Changelog v3.2.2")
 ChangelogSection:Label("Features:")
 ChangelogSection:Label("• Auto Fishing (server-side)")
 ChangelogSection:Label("• Auto equip rod")
 ChangelogSection:Label("• Teleport to Islands")
 ChangelogSection:Label("• Teleport to NPCs")
+ChangelogSection:Label("• Auto Sell Fish (every 5 minutes)")
 ChangelogSection:Label("")
 ChangelogSection:Label("Note: Requires Level 3+")
 ChangelogSection:Label("Just toggle and AFK!")
