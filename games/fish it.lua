@@ -52,6 +52,45 @@ else
     FishingSection:Label("Remote not detected")
 end
 
+-- Anti AFK Section
+local AntiAFKSection = MainTab:Section("Anti AFK")
+local antiAfkActive = false
+local antiAfkLoop = nil
+
+AntiAFKSection:Toggle("Anti AFK", false, function(state)
+    antiAfkActive = state
+    
+    if state then
+        -- Start Anti AFK loop
+        antiAfkLoop = task.spawn(function()
+            while antiAfkActive do
+                local char = Player.Character
+                if char and char:FindFirstChild("Humanoid") then
+                    local humanoid = char.Humanoid
+                    
+                    -- Random jump
+                    humanoid.Jump = true
+                end
+                
+                -- Random delay between 1-3 seconds
+                task.wait(math.random(10, 30) / 10)
+            end
+        end)
+        
+        NextUI:Notification("Anti AFK", "Enabled", 1.5)
+    else
+        -- Stop Anti AFK
+        if antiAfkLoop then
+            task.cancel(antiAfkLoop)
+            antiAfkLoop = nil
+        end
+        NextUI:Notification("Anti AFK", "Disabled", 1.5)
+    end
+end)
+
+AntiAFKSection:Label("")
+AntiAFKSection:Label("Prevents AFK kick")
+
 local TeleportTab = Window:Tab("Teleport")
 local IslandSection = TeleportTab:Section("Islands")
 
